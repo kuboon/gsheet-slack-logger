@@ -1,11 +1,11 @@
 import settings from "../settings.js";
-import Slack from "@slack/web-api";
+import { WebClient } from "@slack/web-api";
 import { Member } from "@slack/web-api/dist/response/UsersListResponse";
-const { WebClient } = Slack
+import { Message } from "@slack/web-api/dist/response/ConversationsHistoryResponse";
+
 const slack = new WebClient(settings.slack.token)
 
-export { Message } from "@slack/web-api/dist/response/ConversationsHistoryResponse";
-
+export { Message }
 export async function* channelsIt() {
   let cursor: string | undefined;
   do {
@@ -19,7 +19,7 @@ export async function* channelsIt() {
     }
   } while (cursor);
 }
-export async function* historyIt(channel: string, oldest: string, latest?: string) {
+export async function* historyIt(channel: string, oldest: string, latest?: string): AsyncGenerator<Message, void, void> {
   let cursor: string | undefined;
   do {
     // passing latest causes pagination from latest to oldest
@@ -48,7 +48,7 @@ export async function* historyIt(channel: string, oldest: string, latest?: strin
     }
   } while (cursor);
 }
-export async function* replies(channel: string, ts: string) {
+async function* replies(channel: string, ts: string) {
   let cursor: string | undefined;
   do {
     // passing latest causes pagination from latest to oldest

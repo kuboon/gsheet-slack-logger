@@ -149,6 +149,14 @@ function msgToRow(msg: Message, p: MessageProcessor) {
   }
 }
 
+async function* ahead<T>(gen: AsyncGenerator<T, void, void>): AsyncGenerator<{ msg: T, next?: T }, void, void> {
+  let msg = (await gen.next()).value!
+  for await (const next of gen) {
+    yield { msg, next }
+    msg = next!
+  }
+  yield { msg }
+}
 async function main(append = false, oldest: Timestamp, latest: Timestamp) {
   const file = new StatusFile();
   const { gSheet, channels } = await file.prepare(append, oldest)
@@ -169,7 +177,7 @@ async function main(append = false, oldest: Timestamp, latest: Timestamp) {
   let counter = 0
   for await (const c of status.channels) {
     console.log(c.name)
-    for await (const msg of historyIt(c.channel_id, c.ts, latest.slack())) {
+    for await (const { msg, next } of ahead(historyIt(c.channel_id, c.ts, latest.slack()))) {
       await updater.next({ sheetId: c.sheetId!, msg })
       counter++
       if (counter > 100) break
