@@ -93,7 +93,8 @@ export class MessageProcessor {
     this.users = await users()
     return this
   }
-  readable(raw: string) {
+  readable(raw: string | undefined) {
+    if (!raw || raw == '') return
     const ret = raw.replaceAll(Regex.user_id, (s, s1) => {
       const user = this.users.find(x => x.id == s1)
       return `@${user?.name || s1}`
@@ -109,12 +110,8 @@ export class MessageProcessor {
     return unescape(ret)
   }
   username(id?: string) {
-    if (!id) return ''
+    if (!id) return
     const user = this.users.find(x => x.id == id)
     return user?.name || id
   }
-}
-async function test() {
-  const p = await new MessageProcessor().await()
-  console.log(p.readable(''))
 }

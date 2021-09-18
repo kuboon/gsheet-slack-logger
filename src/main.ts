@@ -84,48 +84,44 @@ async function prepareWorkSheet(sid: string | null, fName: string) {
   }
 }
 
-async function* batchUpdater(gSheet: GSheet): AsyncGenerator<void, void, { sheetId: number, msg: Message }> {
-  const batches: sheets_v4.Schema$Request[] = []
-  let rows: sheets_v4.Schema$RowData[] = []
-  let count = 0
-  let lastSheetId: number = 0
-  const messageProcessor = await new MessageProcessor().await()
-  while (true) {
-    const input = yield
-    const { sheetId, msg } = input || { sheetId: null, msg: null }
-    count++
-    if (lastSheetId != sheetId && rows.length > 0) {
-      const req: sheets_v4.Schema$Request = { appendCells: { sheetId: lastSheetId, rows, fields: '*' } }
-      batches.push(req)
-      batches.push({
+class BatchBuilder {
+  batches: sheets_v4.Schema$Request[] = []
+  rows: sheets_v4.Schema$RowData[] = []
+  estimate = 0
+  sheetId: number = 0
+  push(row: sheets_v4.Schema$RowData) {
+    this.rows.push(row)
+    this.estimate += JSON.stringify(row).length + 3
+    return this.estimate
+  }
+  setSheetId(sheetId: number) {
+    if (this.rows.length > 0) {
+      const req: sheets_v4.Schema$Request = { appendCells: { sheetId: this.sheetId, rows: this.rows, fields: '*' } }
+      this.batches.push(req)
+      this.batches.push({
         autoResizeDimensions: {
           dimensions: {
-            sheetId: lastSheetId,
+            sheetId: this.sheetId,
             dimension: "COLUMNS",
             startIndex: 0,
             endIndex: 4,
           },
         },
       })
-      rows = []
+      this.rows = []
     }
-    if (!sheetId) break
-
-    lastSheetId = sheetId
-    rows.push(msgToRow(msg, messageProcessor))
-    if (count > 100) {
-      const req: sheets_v4.Schema$Request = { appendCells: { sheetId, rows, fields: '*' } }
-      batches.push(req)
-      await gSheet.batchUpdate(batches)
-      process.stdout.write('.')
-      rows = []
-      batches.length = 0
-      count = 0
-    }
+    this.sheetId = sheetId
   }
-  if (batches.length > 0) {
-    await gSheet.batchUpdate(batches)
-    process.stdout.write('.')
+  flush() {
+    if (this.rows.length > 0) {
+      const req: sheets_v4.Schema$Request = { appendCells: { sheetId: this.sheetId, rows: this.rows, fields: '*' } }
+      this.batches.push(req)
+      this.rows = []
+    }
+    const batches = this.batches
+    this.batches = []
+    this.estimate = 0
+    return batches
   }
 }
 
@@ -138,8 +134,8 @@ function msgToRow(msg: Message, p: MessageProcessor) {
       values: [
         formattedCell(threadMark),
         formattedCell(Timestamp.fromSlack(ts!)!, settings.tz),
-        formattedCell(p.username(user)),
-        formattedCell(p.readable(text!)),
+        formattedCell(p.username(user) || rest.username || ''),
+        formattedCell(p.readable(text) || rest.attachments?.[0].fallback || ''),
         formattedCell(JSON.stringify(rest))
       ]
     }
@@ -173,18 +169,41 @@ async function main(append = false, oldest: Timestamp, latest: Timestamp) {
   status.channels = channels
   await file.save();
 
-  const updater = batchUpdater(gSheet)
-  let counter = 0
+  const builder = new BatchBuilder
+  const messageProcessor = await new MessageProcessor().await()
+  let tsRecord: Record<string, string> = {}
+  async function flashAndSave() {
+    const batches = builder.flush()
+    if (batches.length == 0) return
+    await gSheet.batchUpdate(batches).catch(e => {
+      if (e.code == 429) {
+        console.error(e.errors)
+      } else { throw e }
+    })
+    for (const id in tsRecord) {
+      const c = file.status.channels.find(x => x.channel_id == id)
+      if (c) c.ts = tsRecord[id]
+    }
+    await file.save();
+  }
   for await (const c of status.channels) {
     console.log(c.name)
+    builder.setSheetId(c.sheetId!)
     for await (const { msg, next } of ahead(historyIt(c.channel_id, c.ts, latest.slack()))) {
-      await updater.next({ sheetId: c.sheetId!, msg })
-      counter++
-      if (counter > 100) break
+      if (!msg) break
+      const row = msgToRow(msg, messageProcessor)
+      const estimate = builder.push(row)
+      if (!next) {
+        tsRecord[c.channel_id] = msg.ts!
+      }
+      if (estimate > 2000 && (!next || !next.thread_ts)) {
+        process.stdout.write('.')
+        tsRecord[c.channel_id] = msg.ts!
+        await flashAndSave()
+      }
     }
   }
-  await updater.next()
-  await file.save();
+  await flashAndSave()
 }
 
-main(false, new Timestamp(2020, 8), new Timestamp(2021, 10)).catch(console.error)
+main(true, new Timestamp(2018, 8), new Timestamp(2021, 10)).catch(console.error)
