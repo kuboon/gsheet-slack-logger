@@ -39,18 +39,7 @@ export default async function main(append = false, oldest_: Date, latest_: Date)
   const oldest = new Timestamp(oldest_)
   const latest = new Timestamp(latest_)
   const file = new StatusFile();
-  const { gSheet, channels } = await file.prepare(append, oldest)
-  await file.save();
-
-  const { status } = file
-
-  for await (const s of channels) {
-    const cs = status.channels.find(x => x.channel_id === s.channel_id)
-    if (cs) {
-      s.ts = append ? cs.ts : oldest.slack()
-    }
-  }
-  status.channels = channels
+  const { gSheet } = await file.prepare(append, oldest)
   await file.save();
 
   const builder = new BatchBuilder
@@ -71,7 +60,7 @@ export default async function main(append = false, oldest_: Date, latest_: Date)
     }
     await file.save();
   }
-  for await (const c of status.channels) {
+  for await (const c of file.status.channels) {
     process.stdout.write("\n" + c.name)
     builder.setSheetId(c.sheetId!)
     for await (const { msg, next } of ahead(historyIt(c.channel_id, c.ts, latest.slack()))) {
@@ -91,4 +80,4 @@ export default async function main(append = false, oldest_: Date, latest_: Date)
   await flushAndSave()
 }
 const m = 6
-main(false, new Date(2021, m-1), new Date(2021, m)).catch(e=>console.error(e.code ? [e.code, e.errors] : e))
+main(false, new Date(2021, m - 1), new Date(2021, m)).catch(e => console.error(e.code ? [e.code, e.errors] : e))
