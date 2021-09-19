@@ -112,6 +112,6 @@ export class MessageProcessor {
   username(id?: string) {
     if (!id) return
     const user = this.users.find(x => x.id == id)
-    return user?.name || id
+    return user?.real_name || user?.name || id
   }
 }

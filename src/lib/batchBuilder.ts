@@ -13,20 +13,25 @@ export class BatchBuilder {
   setSheetId(sheetId: number) {
     if (this.rows.length > 0) {
       const req: sheets_v4.Schema$Request = { appendCells: { sheetId: this.sheetId, rows: this.rows, fields: '*' } }
-      this.batches.push(req)
-      this.batches.push({
-        autoResizeDimensions: {
-          dimensions: {
-            sheetId: this.sheetId,
-            dimension: "COLUMNS",
-            startIndex: 0,
-            endIndex: 4,
-          },
-        },
-      })
+      this.batches.push(req);
       this.rows = []
     }
-    this.sheetId = sheetId
+    this.sheetId = sheetId;
+    [15, 112, 100, 700].forEach((px,i)=>{
+      this.batches.push({
+        updateDimensionProperties: {
+          properties: { pixelSize: px },
+          fields: '*',
+          range: {
+            sheetId: this.sheetId,
+            dimension: "COLUMNS",
+            startIndex: i,
+            endIndex: i+1
+          }
+        }
+      })
+    })
+    this.estimate += 500
   }
   flush() {
     if (this.rows.length > 0) {

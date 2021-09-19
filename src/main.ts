@@ -72,7 +72,7 @@ export default async function main(append = false, oldest_: Date, latest_: Date)
     await file.save();
   }
   for await (const c of status.channels) {
-    console.log(c.name)
+    process.stdout.write("\n" + c.name)
     builder.setSheetId(c.sheetId!)
     for await (const { msg, next } of ahead(historyIt(c.channel_id, c.ts, latest.slack()))) {
       if (!msg) break
@@ -81,7 +81,7 @@ export default async function main(append = false, oldest_: Date, latest_: Date)
       if (!next) {
         tsRecord[c.channel_id] = msg.ts!
       }
-      if (estimate > 4000 && (!next || !next.thread_ts)) {
+      if (estimate > 6000 && (!next || !next.parent_user_id)) {
         process.stdout.write('.')
         tsRecord[c.channel_id] = msg.ts!
         await flushAndSave()
@@ -90,3 +90,5 @@ export default async function main(append = false, oldest_: Date, latest_: Date)
   }
   await flushAndSave()
 }
+const m = 6
+main(false, new Date(2021, m-1), new Date(2021, m)).catch(e=>console.error(e.code ? [e.code, e.errors] : e))
