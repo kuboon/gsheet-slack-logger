@@ -1,129 +1,11 @@
 process.env.TZ = 'UTC'
 import settings from "./settings.js";
-import { channelsIt, historyIt, Message, MessageProcessor } from "./lib/slack.js";
+import { StatusFile } from './lib/statusFile.js'
+import { BatchBuilder } from './lib/batchBuilder.js'
+import { historyIt, Message, MessageProcessor } from "./lib/slack.js";
 import { Timestamp } from "./lib/timestamp.js"
-import { formattedCell, GSheet, GSheetSchema, sheets_v4 } from "./lib/google/sheet.js";
-import * as fs from 'fs';
+import { formattedCell, sheets_v4 } from "./lib/google/sheet.js";
 import { ObjError } from "./lib/objError.js";
-
-type ChannelStatus = {
-  name: string,
-  channel_id: string,
-  sheetId?: number,
-  ts: string,
-}
-type Status = {
-  gSheetId: null | string,
-  channels: ChannelStatus[]
-};
-export class StatusFile {
-  filePath = 'lastStatus'
-  status: Status
-  constructor() {
-    this.status = { gSheetId: null, channels: [] }
-  }
-  async load() {
-    try {
-      const json = JSON.parse(fs.readFileSync(this.filePath, 'utf8'));
-      this.status = json
-    } catch {
-    }
-  }
-  async save() {
-    fs.writeFileSync(this.filePath, JSON.stringify(this.status));
-  }
-  async prepare(append: boolean, oldest: Timestamp) {
-    if (append) await this.load();
-    const gSheet = await prepareWorkSheet(this.status.gSheetId, oldest.date(settings.tz))
-    this.status.gSheetId = gSheet.id
-
-    const channels = await prepareSheets(gSheet, oldest.slack())
-    if (append) {
-      for await (const s of channels) {
-        const cs = this.status.channels.find(x => x.channel_id === s.channel_id)
-        if (cs) s.ts = cs.ts
-      }
-    }
-    this.status.channels = channels
-
-    return { gSheet, channels }
-  }
-}
-
-async function prepareSheets(gSheet: GSheet, ts: string) {
-  const channels: ChannelStatus[] = []
-  const batches: sheets_v4.Schema$Request[] = []
-  for await (const c of channelsIt()) {
-    const s: ChannelStatus = {
-      name: c.name!,
-      channel_id: c.id!,
-      ts
-    }
-    channels.push(s)
-    let sheetId = await gSheet.getSheetIdByName(c.name!);
-    if (!sheetId) {
-      batches.push({ addSheet: { properties: { title: c.name } } })
-    }
-  }
-  if (batches.length > 0) {
-    await gSheet.batchUpdate(batches)
-    await gSheet.metaReload()
-  }
-  for (const s of channels) {
-    const sheetId = (await gSheet.getSheetIdByName(s.name))!;
-    s.sheetId = sheetId
-  };
-  return channels
-}
-
-async function prepareWorkSheet(sid: string | null, fName: string) {
-  if (sid) {
-    return new GSheet(sid)
-  } else {
-    return GSheet.create(fName, GSheetSchema.sheetNames(settings.tz, ['_']), settings.folder)
-  }
-}
-
-class BatchBuilder {
-  batches: sheets_v4.Schema$Request[] = []
-  rows: sheets_v4.Schema$RowData[] = []
-  estimate = 0
-  sheetId: number = 0
-  push(row: sheets_v4.Schema$RowData) {
-    this.rows.push(row)
-    this.estimate += JSON.stringify(row).length + 3
-    return this.estimate
-  }
-  setSheetId(sheetId: number) {
-    if (this.rows.length > 0) {
-      const req: sheets_v4.Schema$Request = { appendCells: { sheetId: this.sheetId, rows: this.rows, fields: '*' } }
-      this.batches.push(req)
-      this.batches.push({
-        autoResizeDimensions: {
-          dimensions: {
-            sheetId: this.sheetId,
-            dimension: "COLUMNS",
-            startIndex: 0,
-            endIndex: 4,
-          },
-        },
-      })
-      this.rows = []
-    }
-    this.sheetId = sheetId
-  }
-  flush() {
-    if (this.rows.length > 0) {
-      const req: sheets_v4.Schema$Request = { appendCells: { sheetId: this.sheetId, rows: this.rows, fields: '*' } }
-      this.batches.push(req)
-      this.rows = []
-    }
-    const batches = this.batches
-    this.batches = []
-    this.estimate = 0
-    return batches
-  }
-}
 
 function msgToRow(msg: Message, p: MessageProcessor) {
   const { ts, user, text, ...rest } = msg
@@ -153,7 +35,9 @@ async function* ahead<T>(gen: AsyncGenerator<T, void, void>): AsyncGenerator<{ m
   }
   yield { msg }
 }
-async function main(append = false, oldest: Timestamp, latest: Timestamp) {
+export default async function main(append = false, oldest_: Date, latest_: Date) {
+  const oldest = new Timestamp(oldest_)
+  const latest = new Timestamp(latest_)
   const file = new StatusFile();
   const { gSheet, channels } = await file.prepare(append, oldest)
   await file.save();
@@ -178,6 +62,7 @@ async function main(append = false, oldest: Timestamp, latest: Timestamp) {
     await gSheet.batchUpdate(batches).catch(e => {
       if (e.code == 429) {
         console.error(e.errors)
+        process.exit(1)
       } else { throw e }
     })
     for (const id in tsRecord) {
@@ -196,7 +81,7 @@ async function main(append = false, oldest: Timestamp, latest: Timestamp) {
       if (!next) {
         tsRecord[c.channel_id] = msg.ts!
       }
-      if (estimate > 2000 && (!next || !next.thread_ts)) {
+      if (estimate > 4000 && (!next || !next.thread_ts)) {
         process.stdout.write('.')
         tsRecord[c.channel_id] = msg.ts!
         await flashAndSave()
@@ -205,5 +90,3 @@ async function main(append = false, oldest: Timestamp, latest: Timestamp) {
   }
   await flashAndSave()
 }
-
-main(true, new Timestamp(2018, 8), new Timestamp(2021, 10)).catch(console.error)
