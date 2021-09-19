@@ -56,7 +56,7 @@ export default async function main(append = false, oldest_: Date, latest_: Date)
   const builder = new BatchBuilder
   const messageProcessor = await new MessageProcessor().await()
   let tsRecord: Record<string, string> = {}
-  async function flashAndSave() {
+  async function flushAndSave() {
     const batches = builder.flush()
     if (batches.length == 0) return
     await gSheet.batchUpdate(batches).catch(e => {
@@ -84,9 +84,9 @@ export default async function main(append = false, oldest_: Date, latest_: Date)
       if (estimate > 4000 && (!next || !next.thread_ts)) {
         process.stdout.write('.')
         tsRecord[c.channel_id] = msg.ts!
-        await flashAndSave()
+        await flushAndSave()
       }
     }
   }
-  await flashAndSave()
+  await flushAndSave()
 }
