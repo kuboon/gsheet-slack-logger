@@ -52,12 +52,14 @@ async function prepareSheets(gSheet: GSheet, ts: string) {
   const channels: ChannelStatus[] = []
   const batches: sheets_v4.Schema$Request[] = []
   for await (const c of channelsIt()) {
-    const s: ChannelStatus = {
+    channels.push({
       name: c.name!,
       channel_id: c.id!,
       ts
-    }
-    channels.push(s)
+    })
+  }
+  channels.sort((a, b) => a.name!.localeCompare(b.name!))
+  for (const c of channels) {
     let sheetId = await gSheet.getSheetIdByName(c.name!);
     if (!sheetId) {
       batches.push({ addSheet: { properties: { title: c.name } } })

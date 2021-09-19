@@ -9,7 +9,7 @@ import { ObjError } from "./lib/objError.js";
 
 function msgToRow(msg: Message, p: MessageProcessor) {
   const { ts, user, text, ...rest } = msg
-  const threadMark = msg.reply_count ? '+' : msg.thread_ts ? '>' : ''
+  const threadMark = msg.reply_count ? '+' : msg.parent_user_id ? '>' : ''
 
   try {
     const row: sheets_v4.Schema$RowData = {
@@ -55,8 +55,8 @@ export default async function main(append = false, oldest_: Date, latest_: Date)
       } else { throw e }
     })
     for (const id in tsRecord) {
-      const c = file.status.channels.find(x => x.channel_id == id)
-      if (c) c.ts = tsRecord[id]
+      const c = file.status.channels.find(x => x.channel_id == id)!
+      c.ts = tsRecord[id]
     }
     await file.save();
   }
