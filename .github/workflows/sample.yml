@@ -1,0 +1,19 @@
+name: slack-backup
+
+on:
+  schedule:
+    - cron:  '11 9 12 1 2000'
+  workflow_dispatch:
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    env:
+      GOOGLE: 123
+    steps:
+      - uses: kuboon/gsheet-slack-logger@main
+        with:
+          slack-token: ${{ secrets.SLACK_TOKEN }}
+          google-client-email: slack-logger@kuboon-dev.iam.gserviceaccount.com
+          google-private-key: ${{ secrets.GOOGLE_PRIVATE_KEY }}
+          folder-id: 1y-Q3khgg3sU7ApWf5AxmWqbngb4Li8wn

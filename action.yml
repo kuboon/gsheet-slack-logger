@@ -1,0 +1,35 @@
+name: 'gsheet-slack-logger'
+description: 'Get your slack log and generate google sheet'
+inputs:
+  timezone:
+    required: true
+    default: 'Asia/Tokyo'
+  slack-token:
+    required: true
+    description: 'slack bot token with required scopes'
+  google-client-email:
+    required: true
+    description: 'email of google service account'
+  google-private-key:
+    required: true
+    description: 'private_key for google service account'
+  folder-id:
+    required: true
+    description: 'google drive folder id'
+  year:
+    description: 'target year'
+  month:
+    description: 'target month'
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+  env:
+    TZ: ${{ inputs.timezone }}
+    FOLDER_ID: ${{ inputs.folder-id }}
+    SLACK_TOKEN: ${{ inputs.slack-token }}
+    GOOGLE_EMAIL: ${{ inputs.google-client-email }}
+    GOOGLE_PRIVATE_KEY: ${{ inputs.google-private-key }}
+  args:
+    - monthly
+    - ${{ inputs.year }}
+    - ${{ inputs.month }}
