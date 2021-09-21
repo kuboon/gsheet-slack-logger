@@ -10,6 +10,13 @@ export class BatchBuilder {
     this.estimate += JSON.stringify(row).length + 3
     return this.estimate
   }
+  pushDeleteSheet(){
+    this.batches.push({
+      deleteSheet: {
+        sheetId: this.sheetId
+      }
+    })
+  }
   setSheetId(sheetId: number) {
     if (this.rows.length > 0) {
       const req: sheets_v4.Schema$Request = { appendCells: { sheetId: this.sheetId, rows: this.rows, fields: '*' } }

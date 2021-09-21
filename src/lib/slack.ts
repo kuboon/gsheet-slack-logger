@@ -15,7 +15,7 @@ export async function* channelsIt() {
     });
     cursor = res!.response_metadata?.next_cursor;
     for (const c of res!.channels!) {
-      if (c.is_member) yield c;
+      if (!c.is_private) yield c;
     }
   } while (cursor);
 }

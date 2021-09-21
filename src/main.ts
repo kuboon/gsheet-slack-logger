@@ -64,7 +64,11 @@ export default async function main(append = false, oldest_: Date, latest_: Date)
     process.stdout.write("\n" + c.name)
     builder.setSheetId(c.sheetId!)
     for await (const { msg, next } of ahead(historyIt(c.channel_id, c.ts, latest.slack()))) {
-      if (!msg) break
+      if (!msg) {
+        builder.pushDeleteSheet()
+        process.stdout.write('x')
+        break;
+      }
       const row = msgToRow(msg, messageProcessor)
       const estimate = builder.push(row)
       if (!next) {
@@ -79,5 +83,5 @@ export default async function main(append = false, oldest_: Date, latest_: Date)
   }
   await flushAndSave()
 }
-const m = 6
+const m = 7
 main(false, new Date(2021, m - 1), new Date(2021, m)).catch(e => console.error(e.code ? [e.code, e.errors] : e))
