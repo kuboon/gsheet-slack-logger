@@ -80,7 +80,6 @@ GOOGLE_PRIVATE_KEY はダウンロードした json の private_key の値だが
 以下のように year, month を指定すると、指定の年月のログを取得します。
 
 ```
-      - uses: kuboon/gsheet-slack-logger@main
         with:
           year: 2020
           month: 3
@@ -93,7 +92,6 @@ false にした場合、作成した slack app が既に参加しているチャ
 新規チャンネルには手動で bot を参加させない限りログが取られませんのでご注意ください。
 
 ```
-      - uses: kuboon/gsheet-slack-logger@main
         with:
           autoJoin: false
 ```

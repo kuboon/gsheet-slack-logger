@@ -3,8 +3,8 @@ import * as core from '@actions/core';
 
 let year = parseInt(core.getInput('year'))
 let month = parseInt(core.getInput('month'))
-if (year == 0) {
-  if (month != 0) {
+if (isNaN(year)) {
+  if (!isNaN(month)) {
     core.setFailed('should specify both year and month')
     process.exit(1)
   }
