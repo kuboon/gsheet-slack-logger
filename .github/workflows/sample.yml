@@ -2,7 +2,7 @@ name: slack-backup
 
 on:
   schedule:
-    - cron:  '11 9 1 1 *'
+    - cron:  '3 9 1 * *'
   workflow_dispatch:
 
 jobs:
