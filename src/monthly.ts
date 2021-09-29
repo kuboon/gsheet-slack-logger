@@ -6,7 +6,7 @@ let year, month
 if (args.length < 2 || args[0] == "") {
   const now = new Date
   year = now.getFullYear()
-  month = now.getMonth() + 1
+  month = now.getMonth() + 1 - 2
 } else {
   year = parseInt(args[0])
   month = parseInt(args[1])
