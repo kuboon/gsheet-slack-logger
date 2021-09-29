@@ -11,7 +11,10 @@ if (args.length < 2 || args[0] == "") {
   year = parseInt(args[0])
   month = parseInt(args[1])
 }
+core.notice(`start backing up ${year}/${month}`)
+
 import main from './main.js'
-core.debug('core debug')
-core.notice(`core notice ${year}`)
-main(false, new Date(year, month - 1), new Date(year, month)).catch(console.error)
+main(false, new Date(year, month - 1), new Date(year, month)).catch(e => {
+  console.error(e)
+  core.setFailed(`Action failed with error ${e}`);
+})
