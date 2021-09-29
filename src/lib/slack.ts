@@ -15,7 +15,13 @@ export async function* channelsIt() {
     });
     cursor = res!.response_metadata?.next_cursor;
     for (const c of res!.channels!) {
-      if (!c.is_private) yield c;
+      if (settings.autoJoin && !c.is_member && !c.is_private) {
+        await slack.conversations.join({ channel: c.id! })
+        c.is_member = true
+        yield c
+      } else if (c.is_member) {
+        yield c
+      }
     }
   } while (cursor);
 }

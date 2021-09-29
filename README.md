@@ -8,7 +8,7 @@ slack の過去ログを google sheet に書き出すツールです。
 - github actions で実行可能、サーバー不要
 - 公開リポジトリでセットアップ可能、トークン等の非公開情報は repository secrets に設定
 
-デフォルトでは、実行日時の2か月前からの1か月分を1ファイルにします。
+デフォルトでは、実行日時の2か月前からの1か月分、すべての公開チャンネルを1ファイルにします。
 
 例: 10月x日に実行すると、 8/1 ~ 8/31 分のログを取得
 
@@ -20,10 +20,15 @@ slack の過去ログを google sheet に書き出すツールです。
 # 準備
 
 ## slack bot の作成、 token の取得
+https://api.slack.com/apps
+から適当なアプリを作成し、 OAuth & Permissions で以下の scope を付与し、 xoxb から始まる bot token を生成します。
 - channels:history
 - channels:read
 - users:read
-の３つの scope を指定して作成した TOKEN
+- channels:join
+
+後述する `auto-join: false` を指定する場合は、 channels:join は不要となります。
+この場合、新規作成されたチャンネルへは手動で bot を招待しない限りログ取得対象となりません。
 
 ## Google Cloud Service Account の作成
 https://cloud.google.com/iam/docs/creating-managing-service-account-keys
@@ -57,10 +62,10 @@ jobs:
       - uses: kuboon/gsheet-slack-logger@main
         with:
           timezone: 'Asia/Tokyo'
-          slack-token: ${{ secrets.SLACK_TOKEN }}
-          google-client-email: xxxx@xxxx.iam.gserviceaccount.com # 作成したサービスアカウントの email
-          google-private-key: ${{ secrets.GOOGLE_PRIVATE_KEY }}
-          folder-id: 1p0ZSVps76fWoLpfnE9y5tYHkCK18yVeW
+          slackToken: ${{ secrets.SLACK_TOKEN }}
+          googleClientEmail: xxxx@xxxx.iam.gserviceaccount.com # 作成したサービスアカウントの email
+          googlePrivateKey: ${{ secrets.GOOGLE_PRIVATE_KEY }}
+          folderId: 1p0ZSVps76fWoLpfnE9y5tYHkCK18yVeW
 ```
 
 ## secrets の登録
@@ -71,6 +76,7 @@ jobs:
 GOOGLE_PRIVATE_KEY はダウンロードした json の private_key の値だが、 \n を改行にあらかじめ置換してから github に登録する。
 
 # オプション設定
+## 日時の指定
 以下のように year, month を指定すると、指定の年月のログを取得します。
 
 ```
@@ -79,3 +85,21 @@ GOOGLE_PRIVATE_KEY はダウンロードした json の private_key の値だが
           year: 2020
           month: 3
 ```
+省略時は、現在日時の2か月前となります。
+
+## auto-join
+デフォルトは true です。公開チャンネルには自動的に参加してログを取得します。
+false にした場合、作成した slack app が既に参加しているチャンネルのみが取得対象となります。
+新規チャンネルには手動で bot を参加させない限りログが取られませんのでご注意ください。
+
+```
+      - uses: kuboon/gsheet-slack-logger@main
+        with:
+          autoJoin: false
+```
+
+「新規チャンネルには自動で join させるが、手動で leave したチャンネルは対象外にする」のような運用をしたい場合は、別途 slack-bolt 等で Event を受け取り、
+https://api.slack.com/events/channel_created
+に反応して
+https://api.slack.com/methods/conversations.join
+で自動参加するようにすれば出来るかと思います。 (本システムは bot サーバーを持ってないので各自ご用意ください)

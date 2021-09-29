@@ -5,16 +5,16 @@ inputs:
     required: true
     description: 'your current timezone'
     default: 'Asia/Tokyo'
-  slack-token:
+  slackToken:
     required: true
     description: 'slack bot token with required scopes'
-  google-client-email:
+  googleClientEmail:
     required: true
     description: 'email of google service account'
-  google-private-key:
+  googlePrivateKey:
     required: true
     description: 'private_key for google service account'
-  folder-id:
+  folderId:
     required: true
     description: 'google drive folder id'
   year:
@@ -23,6 +23,10 @@ inputs:
   month:
     required: false
     description: 'target month'
+  autoJoin:
+    required: false
+    description: Join to all public channel. need channels:join scope
+    default: true
 runs:
   using: 'docker'
   image: 'Dockerfile'
