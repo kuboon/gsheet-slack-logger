@@ -2,17 +2,17 @@ name: slack-backup
 
 on:
   schedule:
-    - cron:  '11 9 12 1 2000'
+    - cron:  '11 9 1 1 *'
   workflow_dispatch:
 
 jobs:
   main:
     runs-on: ubuntu-latest
-    env:
-      GOOGLE: 123
     steps:
-      - uses: kuboon/gsheet-slack-logger@main
+      - id: logger
+        uses: kuboon/gsheet-slack-logger@main
         with:
+          timezone: 'Asia/Tokyo'
           slack-token: ${{ secrets.SLACK_TOKEN }}
           google-client-email: slack-logger@kuboon-dev.iam.gserviceaccount.com
           google-private-key: ${{ secrets.GOOGLE_PRIVATE_KEY }}

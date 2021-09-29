@@ -17,8 +17,10 @@ slack の過去ログを google sheet に書き出すツールです。
 の３つの scope を指定して作成した TOKEN
 
 ## Google Cloud Service Account の作成
+https://cloud.google.com/iam/docs/creating-managing-service-account-keys
+手順に従ってサービスアカウントを作成 (role 等何も付与せず作成してOK) し、 JSON キーをダウンロードする。
+JSON のうち、以下の2つのみを使用します。
 - client_email
-- key_id
 - private_key
 
 ## google drive folder の作成
@@ -26,19 +28,36 @@ slack の過去ログを google sheet に書き出すツールです。
 フォルダのURLパスの末尾要素が folder id となります。
 
 ex: https://drive.google.com/drive/folders/1y-Q3khgg3sU7ApWf5AxmWqbngb4Li8tx?hogehoge
+
 folder id は 1y-Q3khgg3sU7ApWf5AxmWqbngb4Li8tx
 
 ## workflow の作成
 適当な github repository (public repo 使用可) に、以下の workflow を追加
 
 ```
+name: slack-backup
 
+on:
+  schedule:
+    - cron:  '11 9 1 * *' # 毎月1日 日本時間0時11分に実行。 0:00 は混み合いがちなので適当にばらす
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: kuboon/gsheet-slack-logger@main
+        with:
+          timezone: 'Asia/Tokyo'
+          slack-token: ${{ secrets.SLACK_TOKEN }}
+          google-client-email: xxxx@xxxx.iam.gserviceaccount.com # 作成したサービスアカウントの email
+          google-private-key: ${{ secrets.GOOGLE_PRIVATE_KEY }}
+          folder-id: 1p0ZSVps76fWoLpfnE9y5tYHkCK18yVeW
 ```
 
 ## secrets の登録
-以下の5つの secrets を登録する
+以下の2つは yml に書くと危険なので secrets を登録する
 - SLACK_TOKEN
-- GOOGLE_CLIENT_EMAIL
-- GOOGLE_KEY_ID
 - GOOGLE_PRIVATE_KEY
-- GOOGLE_FOLDER_ID
+
+GOOGLE_PRIVATE_KEY はダウンロードした json の private_key の値だが、 \n を改行にあらかじめ置換してから github に登録する。
+

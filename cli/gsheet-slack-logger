@@ -1,4 +1,0 @@
-#!/usr/bin/env node
-
-import main from './dist/main.js'
-main(false, new Date(2020, 1), new Date(2021, 10)).catch(console.error)

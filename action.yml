@@ -3,6 +3,7 @@ description: 'Get your slack log and generate google sheet'
 inputs:
   timezone:
     required: true
+    description: 'your current timezone'
     default: 'Asia/Tokyo'
   slack-token:
     required: true
@@ -17,19 +18,11 @@ inputs:
     required: true
     description: 'google drive folder id'
   year:
+    required: false
     description: 'target year'
   month:
+    required: false
     description: 'target month'
 runs:
   using: 'docker'
   image: 'Dockerfile'
-  env:
-    TZ: ${{ inputs.timezone }}
-    FOLDER_ID: ${{ inputs.folder-id }}
-    SLACK_TOKEN: ${{ inputs.slack-token }}
-    GOOGLE_EMAIL: ${{ inputs.google-client-email }}
-    GOOGLE_PRIVATE_KEY: ${{ inputs.google-private-key }}
-  args:
-    - monthly
-    - ${{ inputs.year }}
-    - ${{ inputs.month }}

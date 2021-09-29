@@ -16,6 +16,7 @@
     "typescript": "^4"
   },
   "dependencies": {
+    "@actions/core": "^1.6.0",
     "@slack/web-api": "^6.3.0",
     "date-fns": "^2.23.0",
     "date-fns-tz": "^1.1.4",

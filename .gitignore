@@ -1,5 +1,4 @@
-settings.ts
 dist/
 node_modules/
-
+.envrc
 lastStatus
