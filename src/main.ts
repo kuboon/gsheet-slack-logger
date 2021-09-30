@@ -7,6 +7,8 @@ import { Timestamp } from "./lib/timestamp.js"
 import { formattedCell, sheets_v4 } from "./lib/google/sheet.js";
 import { ObjError } from "./lib/objError.js";
 
+const sleep = (msec: number) => new Promise(ok => setTimeout(ok, msec));
+
 function msgToRow(msg: Message, p: MessageProcessor) {
   const { ts, user, text, ...rest } = msg
   const threadMark = msg.reply_count ? '+' : msg.parent_user_id ? '>' : ''
@@ -61,12 +63,12 @@ export default async function main(append = false, oldest_: Date, latest_: Date)
     await file.save();
   }
   for await (const c of file.status.channels) {
-    process.stdout.write("\n" + c.name)
+    process.stdout.write(c.name)
     builder.setSheetId(c.sheetId!)
     for await (const { msg, next } of ahead(historyIt(c.channel_id, c.ts, latest.slack()))) {
       if (!msg) {
         builder.pushDeleteSheet()
-        process.stdout.write('x')
+        process.stdout.write(' x')
         break;
       }
       const row = msgToRow(msg, messageProcessor)
@@ -74,12 +76,16 @@ export default async function main(append = false, oldest_: Date, latest_: Date)
       if (!next) {
         tsRecord[c.channel_id] = msg.ts!
       }
-      if (estimate > 6000 && (!next || !next.parent_user_id)) {
+      if (estimate > 10000 && (!next || !next.parent_user_id)) {
         process.stdout.write('.')
         tsRecord[c.channel_id] = msg.ts!
         await flushAndSave()
+
+        // https://developers.google.com/sheets/api/reference/limits
+        await sleep(1000)
       }
     }
+    console.log('')
   }
   await flushAndSave()
 }
