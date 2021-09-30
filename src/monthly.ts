@@ -1,5 +1,8 @@
 import main from './main.js'
+import settings from './settings.js';
 import * as core from '@actions/core';
+
+import { Temporal } from '@js-temporal/polyfill';
 
 let year = parseInt(core.getInput('year'))
 let month = parseInt(core.getInput('month'))
@@ -14,7 +17,10 @@ if (isNaN(year)) {
 }
 core.notice(`start backing up ${year}/${month}`)
 
-main(false, new Date(year, month - 1), new Date(year, month)).catch(e => {
+const timeZone = settings.tz;
+const from = Temporal.ZonedDateTime.from({ timeZone, year, month, day: 1})
+const to = Temporal.ZonedDateTime.from({ timeZone, year, month: month+1, day: 1})
+main(false, new Date(from.epochMilliseconds), new Date(to.epochMilliseconds)).catch(e => {
   console.error(e)
   core.setFailed(`Action failed with error ${e}`);
 })

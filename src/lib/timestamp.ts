@@ -10,10 +10,6 @@ const SheetDate = {
   dayToMs: 24 * 60 * 60 * 1000,
 };
 export class Timestamp extends Date {
-  static fromZoned(d: Date, timeZone: string) {
-    const utc = zonedTimeToUtc(d, timeZone);
-    return new Timestamp(utc);
-  }
   static fromSlack(ts: string) {
     if (!ts) return;
     return new Timestamp(Number(ts) * 1000);
