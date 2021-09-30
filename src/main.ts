@@ -83,5 +83,3 @@ export default async function main(append = false, oldest_: Date, latest_: Date)
   }
   await flushAndSave()
 }
-const m = 7
-main(false, new Date(2021, m - 1), new Date(2021, m)).catch(e => console.error(e.code ? [e.code, e.errors] : e))
