@@ -15,7 +15,7 @@ export async function* channelsIt() {
     });
     cursor = res!.response_metadata?.next_cursor;
     for (const c of res!.channels!) {
-      if (settings.autoJoin && !c.is_member && !c.is_private) {
+      if (settings.autoJoin && !c.is_member && !c.is_private && !c.is_archived) {
         await slack.conversations.join({ channel: c.id! })
         c.is_member = true
         yield c

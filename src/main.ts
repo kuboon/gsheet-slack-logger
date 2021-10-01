@@ -43,6 +43,7 @@ export default async function main(append = false, oldest_: Date, latest_: Date)
   const file = new StatusFile();
   const { gSheet } = await file.prepare(append, oldest)
   await file.save();
+  console.log(gSheet.id)
 
   const builder = new BatchBuilder
   const messageProcessor = await new MessageProcessor().await()
