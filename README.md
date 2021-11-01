@@ -27,7 +27,7 @@ https://api.slack.com/apps
 - users:read
 - channels:join
 
-後述する `auto-join: false` を指定する場合は、 channels:join は不要となります。
+後述する `autoJoin: false` を指定する場合は、 channels:join は不要となります。
 この場合、新規作成されたチャンネルへは手動で bot を招待しない限りログ取得対象となりません。
 
 ## Google Cloud Service Account の作成
@@ -86,7 +86,7 @@ GOOGLE_PRIVATE_KEY はダウンロードした json の private_key の値だが
 ```
 省略時は、現在日時の2か月前となります。
 
-## auto-join
+## autoJoin
 デフォルトは true です。公開チャンネルには自動的に参加してログを取得します。
 false にした場合、作成した slack app が既に参加しているチャンネルのみが取得対象となります。
 新規チャンネルには手動で bot を参加させない限りログが取られませんのでご注意ください。
@@ -96,8 +96,6 @@ false にした場合、作成した slack app が既に参加しているチャ
           autoJoin: false
 ```
 
-「新規チャンネルには自動で join させるが、手動で leave したチャンネルは対象外にする」のような運用をしたい場合は、別途 slack-bolt 等で Event を受け取り、
-https://api.slack.com/events/channel_created
-に反応して
-https://api.slack.com/methods/conversations.join
-で自動参加するようにすれば出来るかと思います。 (本システムは bot サーバーを持ってないので各自ご用意ください)
+## skipChannels
+autoJoin: true の場合、 bot を kick しても次の実行時に自動的に join してしまいます。
+skipChannels に channel id を列挙することで、これらのチャンネルをログ取得の対象外とすることができます。

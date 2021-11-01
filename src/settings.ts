@@ -2,6 +2,7 @@ export default {
   tz: process.env['INPUT_TIMEZONE']!,
   folder: process.env['INPUT_FOLDERID']!,
   autoJoin: process.env['INPUT_AUTOJOIN'] == 'true',
+  skipChannels: (process.env['INPUT_AUTOJOIN'] || '').split(' '),
   slack: {
     token: process.env['INPUT_SLACKTOKEN']!
   },

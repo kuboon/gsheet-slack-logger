@@ -18,3 +18,4 @@ jobs:
           googlePrivateKey: ${{ secrets.GOOGLE_PRIVATE_KEY }}
           folderId: 1y-Q3khgg3sU7ApWf5AxmWqbngb4Li8wn
           autoJoin: true
+          skipChannels: ''
