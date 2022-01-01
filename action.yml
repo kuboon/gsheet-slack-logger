@@ -27,6 +27,9 @@ inputs:
     required: false
     description: Join to all public channel. need channels:join scope
     default: true
+  skipChannels:
+    required: false
+    description: Array of channel id which should skip
 runs:
   using: 'docker'
   image: 'Dockerfile'
