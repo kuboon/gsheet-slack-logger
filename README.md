@@ -48,7 +48,8 @@ folder id は 1y-Q3khgg3sU7ApWf5AxmWqbngb4Li8tx
 ## workflow の作成
 適当な github repository (public repo 使用可) に、以下の workflow を追加
 
-```
+```yml
+# .github/workflows/slack-backup.yml
 name: slack-backup
 
 on:
