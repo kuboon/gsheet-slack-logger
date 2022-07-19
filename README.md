@@ -17,6 +17,10 @@ slack の過去ログを google sheet に書き出すツールです。
 この返信は、9月のログを生成する際に取得されますが、10月のログには含まれません。
 10/1 に9月分を取得してしまうと、 10/2 のスレッドはどこにも記録されずに失われてしまうことになります。
 
+github actions の制限により、60日間活動のなかったリポジトリは scheduled workflow が停止してしまいます。この問題について自動で継続する方法は現在のところありません。
+事前にメールで通知が来るので、メール内の指示に従って制限を解除してください。
+https://github.community/t/no-notification-workflow-disabled-after-60-days/182169/5
+
 # 準備
 
 ## slack bot の作成、 token の取得
