@@ -19,7 +19,8 @@ if (isNaN(year)) {
 } else {
     const ym = Temporal.PlainDateTime.from({
         year,
-        month
+        month,
+        day: 1
       });
     from = ym.toZonedDateTime(timeZone)
 }
