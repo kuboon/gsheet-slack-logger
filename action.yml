@@ -39,3 +39,4 @@ runs:
         deno-version: v2.x
     - name: Deno Run
       run: deno run -q -A src/action.ts
+      shell: bash
