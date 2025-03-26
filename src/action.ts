@@ -4,8 +4,8 @@ import * as core from "@actions/core";
 
 const timeZone = settings.tz;
 console.log(`Timezone: ${timeZone}`);
-const year = parseInt(core.getInput("year"));
-const month = parseInt(core.getInput("month"));
+const year = parseInt(settings.year || "");
+const month = parseInt(settings.month || "");
 let from;
 if (isNaN(year)) {
   if (!isNaN(month)) {

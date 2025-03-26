@@ -1,10 +1,7 @@
 name: "gsheet-slack-logger"
 description: "Get your slack log and generate google sheet"
+author: "kuboon"
 inputs:
-  timezone:
-    required: true
-    description: "your current timezone"
-    default: "Asia/Tokyo"
   slackToken:
     required: true
     description: "slack bot token with required scopes"
@@ -14,6 +11,10 @@ inputs:
   googlePrivateKey:
     required: true
     description: "private_key for google service account"
+  timezone:
+    required: true
+    description: "your current timezone"
+    default: "Asia/Tokyo"
   folderId:
     required: true
     description: "google drive folder id"
@@ -40,3 +41,13 @@ runs:
     - name: Deno Run
       run: deno run -q -A ${{ github.action_path }}/src/action.ts
       shell: bash
+      env:
+        INPUT_SLACKTOKEN: ${{ inputs.slackToken }}
+        INPUT_GOOGLECLIENTEMAIL: ${{ inputs.googleClientEmail }}
+        INPUT_GOOGLEPRIVATEKEY: ${{ inputs.googlePrivateKey }}
+        INPUT_TIMEZONE: ${{ inputs.timezone }}
+        INPUT_FOLDERID: ${{ inputs.folderId }}
+        INPUT_YEAR: ${{ inputs.year }}
+        INPUT_MONTH: ${{ inputs.month }}
+        INPUT_AUTOJOIN: ${{ inputs.autoJoin }}
+        INPUT_SKIPCHANNELS: ${{ inputs.skipChannels }}
