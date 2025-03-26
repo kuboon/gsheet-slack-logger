@@ -1,17 +1,14 @@
-import settings from "../settings.js";
-import { WebClient } from "@slack/web-api";
-import { Member } from "@slack/web-api/dist/response/UsersListResponse";
-import { Message } from "@slack/web-api/dist/response/ConversationsHistoryResponse";
+import settings from "../settings.ts";
+import { SlackAPIClient as WebClient } from "@seratch/slack-web-api-client";
 
 const slack = new WebClient(settings.slack.token);
 
-export { Message };
 export async function* channelsIt() {
   let cursor: string | undefined;
   do {
     const res = await slack.conversations.list({
       cursor,
-      types: "public_channel",
+      types: ["public_channel"],
     });
     cursor = res!.response_metadata?.next_cursor;
     for (const c of res!.channels!) {
@@ -28,6 +25,10 @@ export async function* channelsIt() {
     }
   } while (cursor);
 }
+export type Message = NonNullable<
+  Awaited<ReturnType<typeof slack.conversations.history>>["messages"]
+>[number];
+
 export async function* historyIt(
   channel: string,
   oldest: string,
@@ -89,6 +90,9 @@ function unescape(str: string) {
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">");
 }
+export type Member = NonNullable<
+  Awaited<ReturnType<typeof slack.users.list>>["members"]
+>[number];
 async function users() {
   const res = await slack.users.list();
   return res.members!;
@@ -102,22 +106,22 @@ export class MessageProcessor {
     this.groups = [];
     this.channels = [];
   }
-  async await() {
+  async asyncInit() {
     this.users = await users();
     return this;
   }
   readable(raw: string | undefined) {
     if (!raw || raw == "") return;
-    const ret = raw.replaceAll(Regex.user_id, (s, s1) => {
+    const ret = raw.replaceAll(Regex.user_id, (_, s1) => {
       const user = this.users.find((x) => x.id == s1);
       return `@${user?.name || s1}`;
-    }).replaceAll(Regex.group_id, (s, s1) => {
+    }).replaceAll(Regex.group_id, (_, s1) => {
       const hit = this.groups.find((x) => x.id == s1);
       return `@${hit?.name || s1}`;
-    }).replaceAll(Regex.channel_id, (s, s1) => {
+    }).replaceAll(Regex.channel_id, (_, s1) => {
       const hit = this.channels.find((x) => x.id == s1);
       return `@${hit?.name || s1}`;
-    }).replaceAll(Regex.specials, (s, s1) => {
+    }).replaceAll(Regex.specials, (_, s1) => {
       return `@${s1}`;
     });
     return unescape(ret);

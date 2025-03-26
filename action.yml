@@ -1,28 +1,28 @@
-name: 'gsheet-slack-logger'
-description: 'Get your slack log and generate google sheet'
+name: "gsheet-slack-logger"
+description: "Get your slack log and generate google sheet"
 inputs:
   timezone:
     required: true
-    description: 'your current timezone'
-    default: 'Asia/Tokyo'
+    description: "your current timezone"
+    default: "Asia/Tokyo"
   slackToken:
     required: true
-    description: 'slack bot token with required scopes'
+    description: "slack bot token with required scopes"
   googleClientEmail:
     required: true
-    description: 'email of google service account'
+    description: "email of google service account"
   googlePrivateKey:
     required: true
-    description: 'private_key for google service account'
+    description: "private_key for google service account"
   folderId:
     required: true
-    description: 'google drive folder id'
+    description: "google drive folder id"
   year:
     required: false
-    description: 'target year'
+    description: "target year"
   month:
     required: false
-    description: 'target month'
+    description: "target month"
   autoJoin:
     required: false
     description: Join to all public channel. need channels:join scope
@@ -31,5 +31,11 @@ inputs:
     required: false
     description: Array of channel id which should skip
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
+  using: composite
+  steps:
+    - name: Setup Deno
+      uses: denoland/setup-deno@27e0043effb637fb8409496e05bd8472e4b87554 #v2.0.2
+      with:
+        deno-version: v2.x
+    - name: Deno Run
+      run: deno run -q -A src/action.ts
