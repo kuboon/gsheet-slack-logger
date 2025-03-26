@@ -38,5 +38,5 @@ runs:
       with:
         deno-version: v2.x
     - name: Deno Run
-      run: deno run -q -A src/action.ts
+      run: deno run -q -A ${{ github.action_path }}/src/action.ts
       shell: bash
