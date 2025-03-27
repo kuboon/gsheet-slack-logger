@@ -1,5 +1,3 @@
-
-
 export class Timestamp extends Date {
   static fromSlack(ts: string) {
     if (!ts) return;
@@ -31,34 +29,37 @@ export class Timestamp extends Date {
   }
 }
 
-const SheetDate = {
-  origin: Temporal.PlainDateTime.from({ year: 1899, month: 12, day: 30, }),
+const ExcelDate = {
+  origin: Temporal.PlainDateTime.from({ year: 1899, month: 12, day: 30 }),
   dayToMs: 24 * 60 * 60 * 1000,
-};
-export const ExcelDate = {
   from(plain: Temporal.PlainDateTime): number {
-    return SheetDate.origin.until(plain).total({ unit: 'milliseconds' }) / SheetDate.dayToMs;
+    return ExcelDate.origin.until(plain).total({ unit: "milliseconds" }) /
+      ExcelDate.dayToMs;
   },
   toPlain(serial: number): Temporal.PlainDateTime {
-    return SheetDate.origin.add({ milliseconds: Math.floor(serial * SheetDate.dayToMs) });
+    return ExcelDate.origin.add({
+      milliseconds: Math.floor(serial * ExcelDate.dayToMs),
+    });
   },
   fromDate(date: Date, timeZone: Temporal.TimeZoneLike): number {
-    const plain = date.toTemporalInstant().toZonedDateTimeISO(timeZone).toPlainDateTime();
+    const plain = date.toTemporalInstant().toZonedDateTimeISO(timeZone)
+      .toPlainDateTime();
     return ExcelDate.from(plain);
   },
   toDate(serial: number, timeZone: Temporal.TimeZoneLike): Date {
     const plainDateTime = this.toPlain(serial);
-    const ms = plainDateTime.toZonedDateTime(timeZone).toInstant().epochMilliseconds;
+    const ms =
+      plainDateTime.toZonedDateTime(timeZone).toInstant().epochMilliseconds;
     return new Date(ms);
-  }
-}
+  },
+};
 Deno.test({
-  name: 'gsheetSerial',
+  name: "gsheetSerial",
   fn: () => {
-    const tz = 'Asia/Tokyo';
+    const tz = "Asia/Tokyo";
     const date = new Date();
     const serial = ExcelDate.fromDate(date, tz);
     const date2 = ExcelDate.toDate(serial, tz);
     console.log({ date, serial, date2 });
-  }
-})
+  },
+});

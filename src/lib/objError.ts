@@ -30,14 +30,18 @@ export function rethrow(error_: Error, obj?: unknown): never {
 }
 
 Deno.test({
-  name: 'ObjError',
+  name: "ObjError",
   fn: async () => {
-    const func1 = async () => {throw new Error("test");}
-    const func2 = async () => { await func1(); }
+    const func1 = () => {
+      throw new Error("test");
+    };
+    const func2 = async () => {
+      await func1();
+    };
     try {
       await func2().catch(ObjError.throw);
     } catch (e) {
       console.error(e);
     }
-  }
-})
+  },
+});

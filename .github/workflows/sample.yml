@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - id: logger
-        uses: kuboon/gsheet-slack-logger@deno
+        uses: kuboon/gsheet-slack-logger@main
         with:
           timezone: "Asia/Tokyo"
           slackToken: ${{ secrets.SLACK_TOKEN }}
