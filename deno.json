@@ -1,0 +1,12 @@
+{
+  "imports": {
+    "@actions/core": "npm:@actions/core@^1.11.1",
+    "@seratch/slack-web-api-client": "jsr:@seratch/slack-web-api-client@^1.1.5",
+    "@slack/types": "npm:@slack/types@^2.14.0",
+    "google-auth-library": "npm:google-auth-library@^9.15.1",
+    "googleapis": "npm:googleapis@^148.0.0"
+  },
+  "unstable": [
+    "temporal"
+  ]
+}

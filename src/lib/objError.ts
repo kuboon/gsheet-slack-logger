@@ -1,11 +1,11 @@
 const getTrace = (e: Error) => e.stack!.split("\n"); //.slice(1, -1)
 
 export class ObjError extends Error {
-  public obj: any[];
+  public obj: unknown[];
   public trace: string[];
   constructor(error: Error);
-  constructor(msg: string, obj: any);
-  constructor(arg1: Error | string, obj?: any) {
+  constructor(msg: string, obj: unknown);
+  constructor(arg1: Error | string, obj?: unknown) {
     const error = arg1 instanceof Error ? arg1 : undefined;
     const msg = typeof arg1 === "string" ? arg1 : undefined;
     super(error?.message || msg);
@@ -14,9 +14,11 @@ export class ObjError extends Error {
     this.obj = [error || obj];
     this.stack = undefined;
   }
-  static throw(msg: string, obj?: any): never { throw new ObjError(msg, obj) }
+  static throw(msg: string, obj?: unknown): never {
+    throw new ObjError(msg, obj);
+  }
 }
-export function rethrow(error_: Error, obj?: any): never {
+export function rethrow(error_: Error, obj?: unknown): never {
   const error = error_ instanceof ObjError ? error_ : new ObjError(error_);
   if (obj) error.obj.push(obj);
 
@@ -27,15 +29,19 @@ export function rethrow(error_: Error, obj?: any): never {
   throw error;
 }
 
-//
-async function hoge() {
-  await new Promise((ok, ng) =>
-    setTimeout(() => {
-      ng(Error("abc"));
-    }, 400)
-  ).catch((e) => rethrow(e));
-}
-async function test1() {
-  await hoge().catch((e) => rethrow(e));
-}
-//test1().catch((e) => console.error(e));
+Deno.test({
+  name: "ObjError",
+  fn: async () => {
+    const func1 = () => {
+      throw new Error("test");
+    };
+    const func2 = async () => {
+      await func1();
+    };
+    try {
+      await func2().catch(ObjError.throw);
+    } catch (e) {
+      console.error(e);
+    }
+  },
+});

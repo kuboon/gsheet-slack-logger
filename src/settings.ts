@@ -1,13 +1,15 @@
 export default {
-  tz: process.env['INPUT_TIMEZONE']!,
-  folder: process.env['INPUT_FOLDERID']!,
-  autoJoin: process.env['INPUT_AUTOJOIN'] == 'true',
-  skipChannels: (process.env['INPUT_SKIPCHANNELS'] || '').split(' '),
   slack: {
-    token: process.env['INPUT_SLACKTOKEN']!
+    token: Deno.env.get("INPUT_SLACKTOKEN")!,
   },
   google: {
-    email: process.env['INPUT_GOOGLECLIENTEMAIL']!,
-    key: process.env['INPUT_GOOGLEPRIVATEKEY']!
-  }
+    email: Deno.env.get("INPUT_GOOGLECLIENTEMAIL")!,
+    key: Deno.env.get("INPUT_GOOGLEPRIVATEKEY")!,
+  },
+  tz: Deno.env.get("INPUT_TIMEZONE")!,
+  folder: Deno.env.get("INPUT_FOLDERID")!,
+  year: Deno.env.get("INPUT_YEAR"),
+  month: Deno.env.get("INPUT_MONTH"),
+  autoJoin: Deno.env.get("INPUT_AUTOJOIN") == "true",
+  skipChannels: (Deno.env.get("INPUT_SKIPCHANNELS") || "").split(" "),
 };

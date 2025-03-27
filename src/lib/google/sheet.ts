@@ -1,7 +1,7 @@
-import auth from "./auth.js";
-import { CellVal } from "../types.js";
-import { Timestamp } from "../timestamp.js";
-import { ObjError, rethrow } from "../objError.js"
+import auth from "./auth.ts";
+import { CellVal } from "../types.ts";
+import { Timestamp } from "../timestamp.ts";
+import { ObjError } from "../objError.ts";
 
 //import * as gsheets from "@googleapis/sheets";
 //import * as gdrive  from "@googleapis/drive";
@@ -9,11 +9,11 @@ import { ObjError, rethrow } from "../objError.js"
 //const drive = gdrive.drive({ version: "v3", auth });
 //import sheets_v4 = gsheets.sheets_v4
 
-import { google, sheets_v4 } from 'googleapis'
+import { google, sheets_v4 } from "googleapis";
 const sheets = google.sheets({ version: "v4", auth });
 const drive = google.drive({ version: "v3", auth });
 
-export { sheets_v4 }
+export { sheets_v4 };
 
 export function formattedCell(
   c: CellVal,
@@ -46,7 +46,10 @@ export function formattedCell(
 
 export const GSheetSchema = {
   sheetTitle: (title: string) => ({ properties: { title } }),
-  sheetNames: (timeZone: string, names: string[]): sheets_v4.Schema$Spreadsheet => ({
+  sheetNames: (
+    timeZone: string,
+    names: string[],
+  ): sheets_v4.Schema$Spreadsheet => ({
     properties: { timeZone },
     sheets: names.map(GSheetSchema.sheetTitle),
   }),
@@ -59,7 +62,7 @@ export class GSheet {
   ): Promise<GSheet> {
     const res = await sheets.spreadsheets.create({
       requestBody,
-    }).catch(e => rethrow(e));
+    });
     const sheetId = res && res.data.spreadsheetId;
     if (!sheetId) {
       throw new ObjError("GSheet", res);
@@ -100,8 +103,8 @@ export class GSheet {
       .catch((e: unknown) => {
         throw new ObjError("getMeta", e);
       });
-    this.meta_ = res.data
-    return this.meta_!
+    this.meta_ = res.data;
+    return this.meta_!;
   }
   async meta(): Promise<sheets_v4.Schema$Spreadsheet> {
     if (!this.meta_) {

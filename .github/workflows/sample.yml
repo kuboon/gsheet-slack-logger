@@ -2,7 +2,7 @@ name: slack-backup
 
 on:
   schedule:
-    - cron:  '3 9 1 * *'
+    - cron: "3 9 1 * *"
   workflow_dispatch:
 
 jobs:
@@ -12,10 +12,10 @@ jobs:
       - id: logger
         uses: kuboon/gsheet-slack-logger@main
         with:
-          timezone: 'Asia/Tokyo'
+          timezone: "Asia/Tokyo"
           slackToken: ${{ secrets.SLACK_TOKEN }}
           googleClientEmail: slack-logger@kuboon-dev.iam.gserviceaccount.com
           googlePrivateKey: ${{ secrets.GOOGLE_PRIVATE_KEY }}
           folderId: 1y-Q3khgg3sU7ApWf5AxmWqbngb4Li8wn
           autoJoin: true
-          skipChannels: ''
+          skipChannels: ""
