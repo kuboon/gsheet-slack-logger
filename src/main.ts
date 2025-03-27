@@ -9,6 +9,7 @@ import { ObjError } from "./lib/objError.ts";
 
 const sleep = (msec: number) => new Promise((ok) => setTimeout(ok, msec));
 
+// console.log without new line
 async function print(input: string | Uint8Array, to = Deno.stdout) {
   const stream = new Blob([input]).stream();
   await stream.pipeTo(to.writable, { preventClose: true });
@@ -54,7 +55,7 @@ export default async function main(
   const file = new StatusFile();
   const { gSheet } = await file.prepare(append, oldest);
   await file.save();
-  console.log(gSheet.id);
+  console.log("https://docs.google.com/spreadsheets/d/" + gSheet.id);
 
   const builder = new BatchBuilder();
   const messageProcessor = await new MessageProcessor().asyncInit();
@@ -105,11 +106,3 @@ export default async function main(
   }
   await flushAndSave();
 }
-
-Deno.test("Main function test", async () => {
-  await print(".");
-  await print(".");
-  await print(".");
-  console.log();
-  await print(".");
-});
